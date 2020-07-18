@@ -43,14 +43,20 @@ impl MyNumeral {
     }
 }
 
-trait MyError {}
+//trait MyError {}
 
+// 出来ればErrorBとErrorCで分ける
 #[derive(Debug)]
-enum ErrorC {
+enum ErrorBC {
     NotOneDigitNumber { number: u8 },
+    CouldNotConvert,
 }
-impl MyError for ErrorC {}
-fn convert_one_digit_number_to_numeral(number: u8) -> Result<MyNumeral, ErrorC> {
+//#[derive(Debug)]
+//enum ErrorC {
+//    NotOneDigitNumber { number: u8 },
+//}
+//impl MyError for ErrorBC {}
+fn convert_one_digit_number_to_numeral(number: u8) -> Result<MyNumeral, ErrorBC> {
     match number {
         1 => Ok(MyNumeral::One),
         2 => Ok(MyNumeral::Two),
@@ -62,23 +68,23 @@ fn convert_one_digit_number_to_numeral(number: u8) -> Result<MyNumeral, ErrorC> 
         8 => Ok(MyNumeral::Eight),
         9 => Ok(MyNumeral::Nine),
         0 => Ok(MyNumeral::Zero),
-        _ => Err(ErrorC::NotOneDigitNumber { number: number }),
+        _ => Err(ErrorBC::NotOneDigitNumber { number: number }),
     }
 }
 
 // 後々エラーを発見したくて
 // '2' => 22はわざと
 // '3' => ErrorB::CouldNotConvertはわざと
-#[derive(Debug)]
-enum ErrorB {
-    CouldNotConvert,
-}
-impl MyError for ErrorB {}
-fn convert_one_digit_char_to_number(c: char) -> Result<u8, ErrorB> {
+//#[derive(Debug)]
+//enum ErrorB {
+//    CouldNotConvert,
+//}
+//impl MyError for ErrorBC {}
+fn convert_one_digit_char_to_number(c: char) -> Result<u8, ErrorBC> {
     match c {
         '1' => Ok(1),
         '2' => Ok(22),
-        '3' => Err(ErrorB::CouldNotConvert),
+        '3' => Err(ErrorBC::CouldNotConvert),
         '4' => Ok(4),
         '5' => Ok(5),
         '6' => Ok(6),
@@ -86,7 +92,7 @@ fn convert_one_digit_char_to_number(c: char) -> Result<u8, ErrorB> {
         '8' => Ok(8),
         '9' => Ok(9),
         '0' => Ok(0),
-        _ => Err(ErrorB::CouldNotConvert),
+        _ => Err(ErrorBC::CouldNotConvert),
     }
 }
 
@@ -94,8 +100,7 @@ fn convert_one_digit_char_to_number(c: char) -> Result<u8, ErrorB> {
 enum ErrorA {
     NotPositiveNumber,
 }
-//fn convert_positive_number_to_numeral_list(number: i32) -> Result<Vec<Result<MyNumeral, MyError>>, ErrorA> {
-fn convert_positive_number_to_numeral_list(number: i32) -> Result<Vec<Result<u8, ErrorB>>, ErrorA> {
+fn convert_positive_number_to_numeral_list(number: i32) -> Result<Vec<Result<MyNumeral, ErrorBC>>, ErrorA> {
     if number <= 0 {
         return Err(ErrorA::NotPositiveNumber);
     }
@@ -105,8 +110,7 @@ fn convert_positive_number_to_numeral_list(number: i32) -> Result<Vec<Result<u8,
         .map(|c| convert_one_digit_char_to_number(c))
         .map(|n| match n {
           Err(why) => Err(why),
-          //Ok(n) => convert_one_digit_number_to_numeral(n),
-          Ok(n) => Ok(n),
+          Ok(n) => convert_one_digit_number_to_numeral(n),
         })
         .collect())
 }
@@ -131,7 +135,7 @@ mod tests {
     #[test]
     fn can_not_convert_10() {
         match convert_one_digit_number_to_numeral(10) {
-            Err(ErrorC::NotOneDigitNumber { number: _ }) => assert!(true),
+            Err(ErrorBC::NotOneDigitNumber { number: _ }) => assert!(true),
             _ => assert!(false, "テスト失敗"),
         }
     }
@@ -147,7 +151,7 @@ mod tests {
     #[test]
     fn can_not_convert_not_one_digit_char_to_number() {
         match convert_one_digit_char_to_number('a') {
-            Err(ErrorB::CouldNotConvert) => assert!(true),
+            Err(ErrorBC::CouldNotConvert) => assert!(true),
             _ => assert!(false, "テスト失敗"),
         }
     }
