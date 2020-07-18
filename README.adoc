@@ -1,0 +1,29 @@
+== 自作でErrorを定義してまとめたい
+
+----
+MyError
+├ ErrorB
+│   └ CouldNotConvert
+└ ErrorC
+    └ NotOneDigitNumber
+----
+
+----
+MyError = ErrorB | ErrorC
+的なことをしたい
+----
+
+=== どういうプログラム作成でやっていく？
+
+----
+1234 => ["one", "two", "three", "four"]
+----
+
+1. 整数nを受け取る(例: 1234)
+2. 1以上の整数nを文字列sにする(例: 1234 => "1234")
+3. 文字列sを1桁ずつの数値n'のlistにする(例: "1234" => [1,2,3,4])
+4. 数値n'のlistをNumeralにする(例: [1,2,3,4] => ["one", "two", "three", "four"])
+
+* 1,2,3,4をまとめたメソッド(ErrorAを出す可能性がある)
+* 3で1メソッド(ErrorBの可能性がある)
+* 4で1メソッド(ErrorCの可能性がある)

@@ -15,7 +15,7 @@ check: ## cargo check
 
 .PHONY: test
 test: ## cargo test
-	cargo test
+	cargo test -- --nocapture
 
 .PHONY: clean
 clean: ## 片付け
