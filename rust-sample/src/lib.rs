@@ -116,6 +116,7 @@ impl From<ErrorD> for ErrorBCD {
         ErrorBCD::ErrorD(error)
     }
 }
+// 既に10以上のものは倍化に失敗させる
 fn double_number(number :u8) -> Result<u8, ErrorD> {
   match number {
     _ if 10 <= number => Err(ErrorD::CouldNotDouble(number)),
