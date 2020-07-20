@@ -117,10 +117,13 @@ fn convert_positive_number_to_numeral_list(number: i32) -> Result<Vec<Result<MyN
     Ok(number
         .to_string()
         .chars()
-        .map(|c| convert_one_digit_char_to_number(c))        // ErrorBが混ざる可能性がある
-        .map(|n| match n {
-          Err(why) => Err(why),
-          Ok(n) => convert_one_digit_number_to_numeral(n),   // ErrorCが混ざる可能性がある
+        .map(|c| match convert_one_digit_char_to_number(c) { // ErrorBが来る可能性がある
+          Err(why) => Err(ErrorBC::ErrorB(why)),
+          Ok(n) => Ok(n),
+        })
+        .map(|n| match convert_one_digit_number_to_numeral(n?) { // ErrorCが来る可能性がある
+          Err(why) => Err(ErrorBC::ErrorC(why)),
+          Ok(n) => Ok(n),
         })
         .collect())
 }
@@ -161,7 +164,7 @@ mod tests {
     #[test]
     fn can_not_convert_not_one_digit_char_to_number() {
         match convert_one_digit_char_to_number('a') {
-            Err(ErrorBC::CouldNotConvert) => assert!(true),
+            Err(ErrorB::CouldNotConvert) => assert!(true),
             _ => assert!(false, "テスト失敗"),
         }
     }
