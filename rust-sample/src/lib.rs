@@ -54,7 +54,7 @@ enum ErrorBCD {
 }
 #[derive(Debug)]
 enum ErrorC {
-    NotOneDigitNumber { number: u8 },
+    NotOneDigitNumber(u8),
 }
 impl From<ErrorC> for ErrorBCD {
     fn from(error: ErrorC) -> Self {
@@ -74,7 +74,7 @@ fn convert_one_digit_number_to_numeral(number: u8) -> Result<MyNumeral, ErrorC> 
         8 => Ok(MyNumeral::Eight),
         9 => Ok(MyNumeral::Nine),
         0 => Ok(MyNumeral::Zero),
-        _ => Err(ErrorC::NotOneDigitNumber { number: number }),
+        _ => Err(ErrorC::NotOneDigitNumber(number)),
     }
 }
 
@@ -109,7 +109,7 @@ fn convert_one_digit_char_to_number(c: char) -> Result<u8, ErrorB> {
 
 #[derive(Debug)]
 enum ErrorD {
-  CouldNotDouble,
+  CouldNotDouble(u8),
 }
 impl From<ErrorD> for ErrorBCD {
     fn from(error: ErrorD) -> Self {
@@ -118,7 +118,7 @@ impl From<ErrorD> for ErrorBCD {
 }
 fn double_number(number :u8) -> Result<u8, ErrorD> {
   match number {
-    _ if 10 <= number => Err(ErrorD::CouldNotDouble),
+    _ if 10 <= number => Err(ErrorD::CouldNotDouble(number)),
     _ => Ok(number*2),
   }
 }
@@ -166,7 +166,7 @@ mod tests {
     #[test]
     fn can_not_convert_10() {
         match convert_one_digit_number_to_numeral(10) {
-            Err(ErrorC::NotOneDigitNumber { number: _ }) => assert!(true),
+            Err(ErrorC::NotOneDigitNumber(10)) => assert!(true),
             _ => assert!(false, "テスト失敗"),
         }
     }
@@ -187,12 +187,11 @@ mod tests {
         }
     }
 
-
     #[test]
-    fn can_convert_1234_to_one_two_three_four() {
+    fn can_convert_12345_to_one_two_three_four_five() {
         let result = convert_positive_number_to_numeral_list(12345);
         println!("===========================");
-        println!("{:?}", result);
+        println!("{:#?}", result);
         println!("===========================");
     }
 }
