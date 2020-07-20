@@ -47,17 +47,18 @@ impl MyNumeral {
 
 
 #[derive(Debug)]
-enum ErrorBC {
+enum ErrorBCD {
   ErrorB(ErrorB),
   ErrorC(ErrorC),
+  ErrorD(ErrorD),
 }
 #[derive(Debug)]
 enum ErrorC {
     NotOneDigitNumber { number: u8 },
 }
-impl From<ErrorC> for ErrorBC {
+impl From<ErrorC> for ErrorBCD {
     fn from(error: ErrorC) -> Self {
-        ErrorBC::ErrorC(error)
+        ErrorBCD::ErrorC(error)
     }
 }
 // number => enum に変換
@@ -84,9 +85,9 @@ fn convert_one_digit_number_to_numeral(number: u8) -> Result<MyNumeral, ErrorC> 
 enum ErrorB {
     CouldNotConvert,
 }
-impl From<ErrorB> for ErrorBC {
+impl From<ErrorB> for ErrorBCD {
     fn from(error: ErrorB) -> Self {
-        ErrorBC::ErrorB(error)
+        ErrorBCD::ErrorB(error)
     }
 }
 // '1桁の数字' => 1桁の数値 に変換
@@ -107,25 +108,42 @@ fn convert_one_digit_char_to_number(c: char) -> Result<u8, ErrorB> {
 }
 
 #[derive(Debug)]
+enum ErrorD {
+  CouldNotDouble,
+}
+impl From<ErrorD> for ErrorBCD {
+    fn from(error: ErrorD) -> Self {
+        ErrorBCD::ErrorD(error)
+    }
+}
+fn double_number(number :u8) -> Result<u8, ErrorD> {
+  match number {
+    _ if 10 <= number => Err(ErrorD::CouldNotDouble),
+    _ => Ok(number*2),
+  }
+}
+
+#[derive(Debug)]
 enum ErrorA {
     NotPositiveNumber,
 }
-fn convert_positive_number_to_numeral_list(number: i32) -> Result<Vec<Result<MyNumeral, ErrorBC>>, ErrorA> {
+fn convert_positive_number_to_numeral_list(number: i32) -> Result<Vec<Result<MyNumeral, ErrorBCD>>, ErrorA> {
     if number <= 0 {
         return Err(ErrorA::NotPositiveNumber);
     }
-    Ok(number
+    let result: Vec<Result<MyNumeral, ErrorBCD>> = number
         .to_string()
         .chars()
-        .map(|c| match convert_one_digit_char_to_number(c) { // ErrorBが来る可能性がある
-          Err(why) => Err(ErrorBC::ErrorB(why)),
-          Ok(n) => Ok(n),
+        .map(|c| {
+          let a = convert_one_digit_char_to_number(c)?;
+          let b = double_number(a)?;
+          let d = convert_one_digit_number_to_numeral(b)?;
+          Ok(d)
         })
-        .map(|n| match convert_one_digit_number_to_numeral(n?) { // ErrorCが来る可能性がある
-          Err(why) => Err(ErrorBC::ErrorC(why)),
-          Ok(n) => Ok(n),
-        })
-        .collect())
+        //.map(|n| Ok(double_number(n?)?))
+        //.map(|n| Ok(convert_one_digit_number_to_numeral(n?)?))
+        .collect();
+    Ok(result)
 }
 
 #[cfg(test)]
@@ -172,7 +190,7 @@ mod tests {
 
     #[test]
     fn can_convert_1234_to_one_two_three_four() {
-        let result = convert_positive_number_to_numeral_list(1234);
+        let result = convert_positive_number_to_numeral_list(12345);
         println!("===========================");
         println!("{:?}", result);
         println!("===========================");
