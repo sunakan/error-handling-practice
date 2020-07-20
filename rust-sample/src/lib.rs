@@ -1,3 +1,5 @@
+use std::convert::From;
+
 #[derive(Debug, PartialEq)]
 enum MyNumeral {
     One,
@@ -15,19 +17,19 @@ enum MyNumeral {
 impl MyNumeral {
     fn numeral(&self) -> &str {
         match *self {
-            MyNumeral::One => "one",
-            MyNumeral::Two => "two",
+            MyNumeral::One   => "one",
+            MyNumeral::Two   => "two",
             MyNumeral::Three => "three",
-            MyNumeral::Four => "four",
-            MyNumeral::Five => "five",
-            MyNumeral::Six => "six",
+            MyNumeral::Four  => "four",
+            MyNumeral::Five  => "five",
+            MyNumeral::Six   => "six",
             MyNumeral::Seven => "seven",
             MyNumeral::Eight => "eight",
-            MyNumeral::Nine => "nine",
-            MyNumeral::Zero => "zero",
+            MyNumeral::Nine  => "nine",
+            MyNumeral::Zero  => "zero",
         }
     }
-    fn number(&self) -> u32 {
+    fn number(&self) -> u8 {
         match *self {
             MyNumeral::One   => 1,
             MyNumeral::Two   => 2,
@@ -43,20 +45,23 @@ impl MyNumeral {
     }
 }
 
-//trait MyError {}
 
-// 出来ればErrorBとErrorCで分ける
 #[derive(Debug)]
 enum ErrorBC {
-    NotOneDigitNumber { number: u8 },
-    CouldNotConvert,
+  ErrorB(ErrorB),
+  ErrorC(ErrorC),
 }
-//#[derive(Debug)]
-//enum ErrorC {
-//    NotOneDigitNumber { number: u8 },
-//}
-//impl MyError for ErrorBC {}
-fn convert_one_digit_number_to_numeral(number: u8) -> Result<MyNumeral, ErrorBC> {
+#[derive(Debug)]
+enum ErrorC {
+    NotOneDigitNumber { number: u8 },
+}
+impl From<ErrorC> for ErrorBC {
+    fn from(error: ErrorC) -> Self {
+        ErrorBC::ErrorC(error)
+    }
+}
+// number => enum に変換
+fn convert_one_digit_number_to_numeral(number: u8) -> Result<MyNumeral, ErrorC> {
     match number {
         1 => Ok(MyNumeral::One),
         2 => Ok(MyNumeral::Two),
@@ -68,23 +73,28 @@ fn convert_one_digit_number_to_numeral(number: u8) -> Result<MyNumeral, ErrorBC>
         8 => Ok(MyNumeral::Eight),
         9 => Ok(MyNumeral::Nine),
         0 => Ok(MyNumeral::Zero),
-        _ => Err(ErrorBC::NotOneDigitNumber { number: number }),
+        _ => Err(ErrorC::NotOneDigitNumber { number: number }),
     }
 }
 
 // 後々エラーを発見したくて
 // '2' => 22はわざと
 // '3' => ErrorB::CouldNotConvertはわざと
-//#[derive(Debug)]
-//enum ErrorB {
-//    CouldNotConvert,
-//}
-//impl MyError for ErrorBC {}
-fn convert_one_digit_char_to_number(c: char) -> Result<u8, ErrorBC> {
+#[derive(Debug)]
+enum ErrorB {
+    CouldNotConvert,
+}
+impl From<ErrorB> for ErrorBC {
+    fn from(error: ErrorB) -> Self {
+        ErrorBC::ErrorB(error)
+    }
+}
+// '1桁の数字' => 1桁の数値 に変換
+fn convert_one_digit_char_to_number(c: char) -> Result<u8, ErrorB> {
     match c {
         '1' => Ok(1),
         '2' => Ok(22),
-        '3' => Err(ErrorBC::CouldNotConvert),
+        '3' => Err(ErrorB::CouldNotConvert),
         '4' => Ok(4),
         '5' => Ok(5),
         '6' => Ok(6),
@@ -92,7 +102,7 @@ fn convert_one_digit_char_to_number(c: char) -> Result<u8, ErrorBC> {
         '8' => Ok(8),
         '9' => Ok(9),
         '0' => Ok(0),
-        _ => Err(ErrorBC::CouldNotConvert),
+        _ => Err(ErrorB::CouldNotConvert),
     }
 }
 
@@ -107,10 +117,10 @@ fn convert_positive_number_to_numeral_list(number: i32) -> Result<Vec<Result<MyN
     Ok(number
         .to_string()
         .chars()
-        .map(|c| convert_one_digit_char_to_number(c))
+        .map(|c| convert_one_digit_char_to_number(c))        // ErrorBが混ざる可能性がある
         .map(|n| match n {
           Err(why) => Err(why),
-          Ok(n) => convert_one_digit_number_to_numeral(n),
+          Ok(n) => convert_one_digit_number_to_numeral(n),   // ErrorCが混ざる可能性がある
         })
         .collect())
 }
@@ -135,7 +145,7 @@ mod tests {
     #[test]
     fn can_not_convert_10() {
         match convert_one_digit_number_to_numeral(10) {
-            Err(ErrorBC::NotOneDigitNumber { number: _ }) => assert!(true),
+            Err(ErrorC::NotOneDigitNumber { number: _ }) => assert!(true),
             _ => assert!(false, "テスト失敗"),
         }
     }
