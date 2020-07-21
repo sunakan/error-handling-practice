@@ -1,3 +1,3 @@
-include ../shared-makefiles/Makefile.rust
-include ../shared-makefiles/Makefile.gitignore
-include ../shared-makefiles/Makefile.help
+include ../shared-makefiles/rust.mk
+include ../shared-makefiles/gitignore.mk
+include ../shared-makefiles/help.mk
